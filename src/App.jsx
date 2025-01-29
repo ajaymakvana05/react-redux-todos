@@ -3,10 +3,12 @@ import "./App.css";
 import { useDispatch, useSelector } from "react-redux";
 
 function App() {
-  const todos = useSelector((state) => state.todos || []); 
+  const todos = useSelector((state) => state.todos || []);
   const dispatch = useDispatch();
 
   const [todo, setTodo] = useState("");
+  const [editIndex, setEditIndex] = useState(null);
+  const [editText, setEditText] = useState("");
 
 
   useEffect(() => {
@@ -16,13 +18,28 @@ function App() {
   const addTodo = () => {
     if (todo.trim()) {
       dispatch({ type: "ADD_TODO", payload: todo });
-      setTodo(""); 
+      setTodo("");
     }
   };
 
   const removeTodo = (index) => {
     dispatch({ type: "REMOVE_TODO", payload: index });
   };
+
+  const startEditing = (index, text) => {
+    setEditIndex(index);
+    setEditText(text);
+  };
+
+  // Update Todo
+  const updateTodo = () => {
+    if (editText.trim()) {
+      dispatch({ type: "UPDATE_TODO", payload: { index: editIndex, updatedText: editText } });
+      setEditIndex(null); // Exit edit mode
+      setEditText("");
+    }
+  };
+
 
   const styles = {
     container: {
@@ -112,13 +129,24 @@ function App() {
         {todos.length > 0 ? (
           todos.map((task, index) => (
             <li key={index} style={styles.listItem}>
-              {task}
-              <button
-                onClick={() => removeTodo(index)}
-                style={styles.buttonRemove}
-              >
-                Remove
-              </button>
+              {editIndex === index ? (
+                <>
+                  <input
+                    type="text"
+                    value={editText}
+                    onChange={(e) => setEditText(e.target.value)}
+                    style={{ fontSize: "18px", padding: "5px", marginRight: "10px", borderRadius: "20px", border: "1px solid black", paddingLeft: "15px", boxShadow: "5px 6px 10px 5px" }}
+                  />
+                  <button onClick={updateTodo} style={{ marginRight: "10px" }}>Save</button>
+                  <button onClick={() => setEditIndex(null)}>Cancel</button>
+                </>
+              ) : (
+                <>
+                  <span style={{ fontSize: "18px", flexGrow: 1 }}>{task}</span>
+                  <button onClick={() => startEditing(index, task)} style={{ marginRight: "10px", backgroundColor: "green", color: "white" }}>Edit</button>
+                  <button onClick={() => removeTodo(index)} style={{ backgroundColor: "red", color: "white" }}>Remove</button>
+                </>
+              )}
             </li>
           ))
         ) : (
